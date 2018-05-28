@@ -1,0 +1,55 @@
+<html>
+<body>
+         <button type= "button" id="a1" data-filename="uploadFile.xml">Click to download</button>
+         <div class="progressbar" style='display:none'>
+         <img src='img/ajax-loader.gif'/></div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+  <script>
+  $('#a1').click(function() {
+
+    $('#progressbar').show();
+      var that = this;
+      var page_url = 'upload.php';
+      var usage_url = 'usage.php';
+
+      var req = new XMLHttpRequest();
+      req.open("POST", page_url, true);
+      req.addEventListener("progress", function (evt) {
+          if(evt.lengthComputable) {
+              var percentComplete = evt.loaded / evt.total;
+              console.log(percentComplete);
+          }
+      }, false);
+      req.responseType = "blob";
+      req.onreadystatechange = function () {
+          if (req.readyState === 4 && req.status === 200) {
+              var filename = $(that).data('filename');
+              if (typeof window.chrome !== 'undefined') {
+                  // Chrome version
+                  var link = document.createElement('a');
+                  link.href = window.URL.createObjectURL(req.response);
+                  link.download = filename;
+                  link.click();
+              } else if (typeof window.navigator.msSaveBlob !== 'undefined') {
+                  // IE version
+                  var blob = new Blob([req.response], { type: 'application/force-download' });
+                  window.navigator.msSaveBlob(blob, filename);
+              } else {
+                  // Firefox version
+                  var file = new File([req.response], filename, { type: 'application/force-download' });
+                  window.open(URL.createObjectURL(file));
+              }
+          }
+      };
+      req.send();
+      $('#progressbar').hide();
+      req = new XMLHttpRequest();
+      req.open("POST", usage_url, true);
+      req.send();
+  });
+  </script>
+
+</body>
+</html>
